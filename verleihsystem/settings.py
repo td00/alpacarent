@@ -12,13 +12,14 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from decouple import config, Csv
 from pathlib import Path
-
+import os
 
 SECRET_KEY = config("SECRET_KEY", default="django-insecure-yb&yqhylx6o7o3f$6-=3zxoxyxftkb2+di%5@8js&+q!b)28st")
 DEBUG = config("DEBUG", cast=bool, default=False)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 TIME_ZONE = config("TIME_ZONE", default="Europe/Berlin")
 LANGUAGE_CODE = config("LANGUAGE_CODE", default="de-DE")
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
 
 
 
