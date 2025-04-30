@@ -1,0 +1,22 @@
+{% extends "verleih/base.html" %}
+{% block content %}
+<h2>Ausgegebene Assets</h2>
+<table>
+    <tr>
+        <th>Asset</th>
+        <th>Kategorie</th>
+        <th>Teilnehmer*in</th>
+        <th>Ausgeliehen am</th>
+    </tr>
+    {% for ausleihe in ausleihen %}
+    <tr>
+        <td>{{ ausleihe.asset.asset_tag }} – {{ ausleihe.asset.asset_name }}</td>
+        <td>{{ ausleihe.asset.category }}</td>
+        <td>{{ ausleihe.person.name }} ({{ ausleihe.person.teilnehmer_id }})</td>
+        <td>{{ ausleihe.timestamp|date:"d.m.Y H:i" }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">Keine ausgegebenen Assets.</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

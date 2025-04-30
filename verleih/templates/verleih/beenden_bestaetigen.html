@@ -1,0 +1,12 @@
+{% extends 'verleih/base.html' %}
+{% block content %}
+<h3>Achtung!</h3>
+<p>Es sind noch {{ anzahl_offen }} Assets ausgeliehen.</p>
+<p>Möchtest du die Veranstaltung wirklich beenden und die CSV-Dateien exportieren?</p>
+<form action="{% url 'beenden_force' %}" method="get">
+    {% csrf_token %}
+    <input type="hidden" name="force" value="1">
+    <button type="submit" class="btn btn-danger">Ja, trotzdem beenden</button>
+    <a href="{% url 'index' %}" class="btn btn-secondary">Abbrechen</a>
+</form>
+{% endblock %}

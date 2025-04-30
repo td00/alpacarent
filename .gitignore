@@ -1,0 +1,6 @@
+*/__pycache__
+.DS_Store
+db.sqlite3
+verleih/__pycache__
+verleih/migrations
+verleih/management/commands/__pycache__

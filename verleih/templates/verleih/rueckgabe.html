@@ -1,0 +1,78 @@
+{% extends 'verleih/base.html' %}
+{% block content %}
+<h2>Asset zurücknehmen</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="form-group">
+        <label for="id_teilnehmer_id">Teilnehmer*innen Code</label>
+        {{ form.teilnehmer_id }}
+        <button type="button" class="btn btn-secondary mt-2" onclick="startPersonScanner()">QR-Code scannen</button>
+        <div id="reader-person" style="width: 300px; display: none;" class="mt-2 mb-3"></div>
+    </div>
+
+    <div class="form-group">
+        <label for="id_asset_input">Asset Tag</label>
+        {{ form.asset_input }}
+        <button type="button" class="btn btn-secondary mt-2" onclick="startAssetScanner()">QR-Code scannen</button>
+        <div id="reader-asset" style="width: 300px; display: none;" class="mt-2 mb-3"></div>
+    </div>
+
+    <div class="form-group">
+        {{ form.zustand.label_tag }}
+        {{ form.zustand }}
+        <small class="form-text text-muted">{{ form.zustand.help_text }}</small>
+    </div>
+
+    <div class="form-group">
+        {{ form.kommentar.label_tag }}
+        {{ form.kommentar }}
+        <small class="form-text text-muted">{{ form.kommentar.help_text }}</small>
+    </div>
+
+    <button type="submit" class="btn btn-warning mt-3">Zurücknehmen</button>
+</form>
+
+<!-- html5-qrcode library -->
+<script src="/static/qrcode.js"></script>
+<script>
+function startPersonScanner() {
+    const reader = new Html5Qrcode("reader-person");
+    document.getElementById("reader-person").style.display = "block";
+    reader.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        qrCodeMessage => {
+            document.getElementById("id_teilnehmer_id").value = qrCodeMessage.trim();
+            reader.stop().then(() => {
+                document.getElementById("reader-person").style.display = "none";
+            });
+        },
+        errorMessage => {
+            console.warn("QR-Fehler (Teilnehmer):", errorMessage);
+        }
+    );
+}
+
+function startAssetScanner() {
+    const reader = new Html5Qrcode("reader-asset");
+    document.getElementById("reader-asset").style.display = "block";
+    reader.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        qrCodeMessage => {
+            const raw = qrCodeMessage.trim();
+            const assetTag = raw.startsWith("https://assets.alpacabunt.de/ht/") ? raw.split("/").pop() : raw;
+            document.getElementById("id_asset_input").value = assetTag;
+            reader.stop().then(() => {
+                document.getElementById("reader-asset").style.display = "none";
+            });
+        },
+        errorMessage => {
+            console.warn("QR-Fehler (Asset):", errorMessage);
+        }
+    );
+}
+</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "verleih/base.html" %}
+{% block content %}
+<h2>Verfügbare Assets</h2>
+
+<ul>
+  {% for asset in assets %}
+    <li>{{ asset.asset_tag }} – {{ asset.asset_name }} (Kategorie: {{ asset.category }})</li>
+  {% empty %}
+    <li>Keine verfügbaren Assets gefunden.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

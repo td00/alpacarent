@@ -1,0 +1,24 @@
+{% extends 'verleih/base.html' %}
+{% block content %}
+<h1>Willkommen im Verleihsystem für Jugend hackt Hamburg</h1>
+{% if user.is_authenticated %}
+<div class="list-group">
+    <a href="{% url 'person_anlegen' %}" class="list-group-item list-group-item-action">Teilnehmer anlegen</a>
+    <a href="{% url 'ausleihe' %}" class="list-group-item list-group-item-action">Asset ausleihen</a>
+    <a href="{% url 'rueckgabe' %}" class="list-group-item list-group-item-action">Asset zurücknehmen</a>
+    <a href="{% url 'ausgegeben' %}" class="list-group-item list-group-item-action">Ausgeliehene Assets</a>
+    <a href="{% url 'verfuegbar' %}" class="list-group-item list-group-item-action">Verfügbare Assets</a>
+    <a href="{% url 'beenden' %}" class="list-group-item list-group-item-action">Veranstaltung beenden (Export)</a>
+</div>
+{% else %}
+<div class="alert alert-warning" role="alert">
+    Du bist nicht eingeloggt. Bitte melde dich an, um auf das Verleihsystem zuzugreifen.
+</div>
+<a href="{% url 'login' %}" class="btn btn-primary">Anmelden</a>
+{% endif %}
+{% if user.is_authenticated and user.is_superuser %}
+<div class="list-group mt-3">
+    <a href="{% url 'admin:index' %}" class="list-group-item list-group-item-action">Admin-Bereich</a>
+</div>
+{% endif %}
+{% endblock %}
