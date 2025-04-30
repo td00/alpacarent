@@ -1,5 +1,5 @@
 # Verwende ein offizielles Python-Image als Basis
-FROM python:3.9-slim
+FROM python:3.12-slim
 
 # Arbeitsverzeichnis im Container erstellen
 WORKDIR /app
@@ -14,7 +14,8 @@ COPY . /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Um sicherzustellen, dass die statischen Dateien gesammelt werden
-RUN python manage.py collectstatic --noinput
+RUN python manage.py makemigrations verleih
+RUN python manage.py migrate
 
 # Exponiere den Port 8000
 EXPOSE 8000
