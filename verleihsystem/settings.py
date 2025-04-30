@@ -19,9 +19,11 @@ DEBUG = config("DEBUG", cast=bool, default=False)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 TIME_ZONE = config("TIME_ZONE", default="Europe/Berlin")
 LANGUAGE_CODE = config("LANGUAGE_CODE", default="de-DE")
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+CSRF_TRUSTED_ORIGINS = config("CSRT_TRUSTED_ORIGINS", default=['http://localhost:8000'])
+SNIPEIT_URL = config("SNIPEIT_URL")
+SNIPEIT_TOKEN = config("SNIPEIT_TOKEN")
 
-
+LOGIN_REDIRECT_URL = "/"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
