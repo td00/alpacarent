@@ -16,7 +16,7 @@ from pathlib import Path
 
 SECRET_KEY = config("SECRET_KEY", default="django-insecure-yb&yqhylx6o7o3f$6-=3zxoxyxftkb2+di%5@8js&+q!b)28st")
 DEBUG = config("DEBUG", cast=bool, default=False)
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv, default="localhost")
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 TIME_ZONE = config("TIME_ZONE", default="Europe/Berlin")
 LANGUAGE_CODE = config("LANGUAGE_CODE", default="de-DE")
 
