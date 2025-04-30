@@ -1,0 +1,75 @@
+{% extends 'verleih/base.html' %}
+{% block content %}
+<h2>Ist das mein Leihgerät?</h2>
+
+Hier kannst du überprüfen, ob das Leihgerät, was du vor dir hast, auch wirklich dir gehört.<br />
+Scanne einfach den QR-Code auf deinem Leihgerät und den QR-Code auf deinem Badge.
+<br />
+<b>Wenn das dein Gerät ist, aber das System dir anzeigt, dass es nicht dir gehört, dann melde dich bitte bei der Orga.</b>
+<hr />
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="id_teilnehmer_id">Badge QR Code</label>
+        {{ form.teilnehmer_id }}
+        <button type="button" class="btn btn-secondary mt-2" onclick="startPersonScanner()"><i class="bi bi-camera"></i></button>
+        <div id="reader-person" style="width: 300px; display: none;" class="mt-2 mb-3"></div>
+    </div>
+
+    <div class="form-group">
+        <label for="id_asset_input">Asset Tag</label>
+        {{ form.asset_input }}
+        <button type="button" class="btn btn-secondary mt-2" onclick="startAssetScanner()"><i class="bi bi-camera"></i></button>
+        <div id="reader-asset" style="width: 300px; display: none;" class="mt-2 mb-3"></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3"><i class="bi bi-search"></i>Prüfen</button>
+</form>
+
+{% if result %}
+    <div class="alert alert-{{ status }} mt-4">
+        {{ result }}
+    </div>
+{% endif %}
+
+<script src="/static/qrcode.js"></script>
+<script>
+function startPersonScanner() {
+    const reader = new Html5Qrcode("reader-person");
+    document.getElementById("reader-person").style.display = "block";
+    reader.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        qrCodeMessage => {
+            document.getElementById("id_teilnehmer_id").value = qrCodeMessage.trim();
+            reader.stop().then(() => {
+                document.getElementById("reader-person").style.display = "none";
+            });
+        },
+        errorMessage => {
+            console.warn("QR-Fehler (Teilnehmer):", errorMessage);
+        }
+    );
+}
+
+function startAssetScanner() {
+    const reader = new Html5Qrcode("reader-asset");
+    document.getElementById("reader-asset").style.display = "block";
+    reader.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        qrCodeMessage => {
+            const raw = qrCodeMessage.trim();
+            const assetTag = raw.startsWith("https://assets.alpacabunt.de/ht/") ? raw.split("/").pop() : raw;
+            document.getElementById("id_asset_input").value = assetTag;
+            reader.stop().then(() => {
+                document.getElementById("reader-asset").style.display = "none";
+            });
+        },
+        errorMessage => {
+            console.warn("QR-Fehler (Asset):", errorMessage);
+        }
+    );
+}
+</script>
+{% endblock %}

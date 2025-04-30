@@ -3,22 +3,32 @@
 <h1>Willkommen im Verleihsystem für Jugend hackt Hamburg</h1>
 {% if user.is_authenticated %}
 <div class="list-group">
-    <a href="{% url 'person_anlegen' %}" class="list-group-item list-group-item-action">Teilnehmer anlegen</a>
-    <a href="{% url 'ausleihe' %}" class="list-group-item list-group-item-action">Asset ausleihen</a>
-    <a href="{% url 'rueckgabe' %}" class="list-group-item list-group-item-action">Asset zurücknehmen</a>
-    <a href="{% url 'ausgegeben' %}" class="list-group-item list-group-item-action">Ausgeliehene Assets</a>
-    <a href="{% url 'verfuegbar' %}" class="list-group-item list-group-item-action">Verfügbare Assets</a>
-    <a href="{% url 'beenden' %}" class="list-group-item list-group-item-action">Veranstaltung beenden (Export)</a>
+    <a href="{% url 'person_anlegen' %}" class="list-group-item list-group-item-action"><i class="bi bi-person-fill-add"></i> Teilnehmer*in anlegen</a>
+    <a href="{% url 'ausleihe' %}" class="list-group-item list-group-item-action"><i class="bi bi-box-arrow-right"></i> Asset ausleihen</a>
+    <a href="{% url 'rueckgabe' %}" class="list-group-item list-group-item-action"><i class="bi bi-box-arrow-left"></i> Asset zurücknehmen</a>
+    <a href="{% url 'ausgegeben' %}" class="list-group-item list-group-item-action"><i class="bi bi-card-list"></i> Ausgeliehene Assets</a>
+    <a href="{% url 'verfuegbar' %}" class="list-group-item list-group-item-action"><i class="bi bi-binoculars"></i> Verfügbare Assets</a>
+    <a href="{% url 'asset_check' %}" class="list-group-item list-group-item-action"><i class="bi bi-search"></i> Asset-Check</a>
+
 </div>
 {% else %}
 <div class="alert alert-warning" role="alert">
-    Du bist nicht eingeloggt. Bitte melde dich an, um auf das Verleihsystem zuzugreifen.
+   Du bist nicht eingeloggt. Bitte melde dich an, um Geräte ein oder auszuchecken. Wenn du nur prüfen möchtest ob das dein Gerät ist, kannst du das auch ohne Anmeldung tun. Klicke dafür einfach auf "Ist das mein Gerät?" und scanne den QR-Code auf dem Gerät & auf deiner Badge.
 </div>
-<a href="{% url 'login' %}" class="btn btn-primary">Anmelden</a>
+<a href="{% url 'login' %}" class="btn btn-secondary">Anmelden</a>
+<br /><hr /><br />
+<a href="{% url 'meingeraet' %}" class="btn btn-primary"><i class="bi bi-search"></i> Ist das mein Gerät?</a>
 {% endif %}
+
 {% if user.is_authenticated and user.is_superuser %}
-<div class="list-group mt-3">
-    <a href="{% url 'admin:index' %}" class="list-group-item list-group-item-action">Admin-Bereich</a>
+<div class="list-group mt-3"> 
+    <a href="{% url 'admin:index' %}" class="list-group-item list-group-item-action"><i class="bi bi-lock"></i>Admin-Bereich</a>
+    <a href="{% url 'import_snipeit' %}" class="list-group-item list-group-item-action"><i class="bi bi-box-arrow-in-down"></i>Assets importieren</a>
+    <a href="{% url 'beenden' %}" class="list-group-item list-group-item-action"><i class="bi bi-cloud-download"></i>Veranstaltung beenden (Export)</a>
 </div>
+
 {% endif %}
 {% endblock %}
+
+
+<link rel="stylesheet" href="">

@@ -1,19 +1,19 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Person, Asset, Ausleihe, Rueckgabe
-from .forms import PersonForm, AusleiheForm, RueckgabeForm
+from .forms import PersonForm, AusleiheForm, RueckgabeForm, MeinGeraetForm
 from django.utils.timezone import now
 from django.http import HttpResponse
 from django.contrib import messages
+import requests
 from collections import defaultdict
 from django.db.models import Q
 import csv
 from io import StringIO
 from reportlab.pdfgen import canvas
-from django.contrib.auth.decorators import login_required
+from django.conf import settings
+from django.contrib.auth.decorators import login_required, user_passes_test
 
-def generate_next_id():
-    count = Person.objects.count() + 1
-    return f"TEILI-{count:03d}"
+
 
 @login_required
 def person_anlegen(request):
@@ -21,7 +21,6 @@ def person_anlegen(request):
         form = PersonForm(request.POST)
         if form.is_valid():
             person = form.save(commit=False)
-            person.teilnehmer_id = generate_next_id()
             person.save()
             return redirect('index')
     else:
@@ -203,3 +202,141 @@ def export_csv():
 
 def startseite(request):
     return render(request, 'verleih/index.html')
+
+
+def is_admin(user):
+    return user.is_superuser or user.is_staff
+
+@login_required
+@user_passes_test(is_admin)
+def import_assets_view(request):
+    headers = {
+        "Authorization": f"Bearer {settings.SNIPEIT_TOKEN}",
+        "Accept": "application/json"
+    }
+
+    url = f"{settings.SNIPEIT_URL}/hardware"
+    page = 1
+    imported = 0
+
+    while True:
+        response = requests.get(url, headers=headers, params={"limit": 100, "offset": (page - 1) * 100})
+        response.raise_for_status()
+        data = response.json()
+        assets = data.get("rows", [])
+        if not assets:
+            break
+
+        for asset in assets:
+            assigned_to = asset.get("assigned_to", {})
+            if not assigned_to or assigned_to.get("username") != "event-dummy":
+                continue
+
+            asset_tag = asset.get("asset_tag")
+            name = asset.get("name", "")
+            serial = asset.get("serial", "")
+            model = asset.get("model", {}).get("name", "")
+            category = asset.get("category", {}).get("name", "")
+            status = asset.get("status_label", {}).get("name", "Unbekannt")
+            location = asset.get("rtd_location", {}).get("name", "")
+
+            if not asset_tag:
+                continue
+
+            if not Asset.objects.filter(asset_tag=asset_tag).exists():
+                Asset.objects.create(
+                    asset_name=name,
+                    asset_tag=asset_tag,
+                    serial=serial,
+                    model=model,
+                    category=category,
+                    status=status,
+                    location=location,
+                )
+                imported += 1
+
+        if len(assets) < 100:
+            break
+        page += 1
+
+    messages.success(request, f"{imported} neue Assets importiert.")
+    return redirect("index")
+
+
+from django.db.models import OuterRef, Subquery, Exists
+from .models import Ausleihe, Rueckgabe
+
+def meingeraet_view(request):
+    result = None
+    status = None
+    warnung = None
+
+    if request.method == "POST":
+        form = MeinGeraetForm(request.POST)
+        if form.is_valid():
+            teilnehmer_id = form.cleaned_data["teilnehmer_id"]
+            asset_input = form.cleaned_data["asset_input"]
+
+            # Aktive Ausleihe zur Person & Asset finden
+            ausleihe_qs = Ausleihe.objects.filter(
+                person__teilnehmer_id=teilnehmer_id,
+                asset__asset_tag=asset_input
+            ).exclude(id__in=Rueckgabe.objects.values("ausleihe"))
+
+            ausleihe = ausleihe_qs.first()
+
+            if ausleihe:
+                result = "Ja, das ist dein Leihgerät ✅"
+                status = "success"
+            else:
+                result = "Nein, das ist nicht dein Leihgerät. Wenn du Fragen hast, wende dich bitte an die Orga."
+                status = "danger"
+
+                # Prüfe, ob dieses Asset überhaupt aktiv verliehen ist
+                andere_ausleihe_qs = Ausleihe.objects.filter(
+                    asset__asset_tag=asset_input
+                ).exclude(id__in=Rueckgabe.objects.values("ausleihe"))
+
+                if not andere_ausleihe_qs.exists():
+                    warnung = "❗ Mit dem Gerät stimmt etwas nicht. Bitte bringe das Gerät zur Orga!"
+
+    else:
+        form = MeinGeraetForm()
+
+    return render(request, "verleih/meingeraet.html", {
+        "form": form,
+        "result": result,
+        "status": status,
+        "warnung": warnung
+    })
+
+@login_required
+def asset_check_view(request):
+    asset_info = None
+    status = None
+
+    if request.method == "POST":
+        raw_input = request.POST.get("asset_input", "").strip()
+
+        # Falls es eine URL ist, nur den Asset-Tag extrahieren
+        asset_tag = raw_input.split("/")[-1] if "/" in raw_input else raw_input
+
+        # Suche nach aktiver Ausleihe (ohne zugehörige Rückgabe)
+        ausleihe = Ausleihe.objects.filter(asset__asset_tag=asset_tag).exclude(
+            rueckgabe__isnull=False
+        ).first()
+
+        if ausleihe:
+            asset_info = {
+                "name": ausleihe.person.name,
+                "projekt": ausleihe.person.projekt,
+                "asset_tag": asset_tag,
+            }
+            status = "success"
+        else:
+            status = "danger"  # Kein aktiver Ausleiher gefunden
+
+    return render(request, "verleih/asset_check.html", {
+        "asset_info": asset_info,
+        "status": status,
+    })

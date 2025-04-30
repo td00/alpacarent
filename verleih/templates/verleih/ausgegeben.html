@@ -1,7 +1,7 @@
 {% extends "verleih/base.html" %}
 {% block content %}
 <h2>Ausgegebene Assets</h2>
-<table>
+<table class="table table-striped table-bordered">
     <tr>
         <th>Asset</th>
         <th>Kategorie</th>
@@ -10,9 +10,9 @@
     </tr>
     {% for ausleihe in ausleihen %}
     <tr>
-        <td>{{ ausleihe.asset.asset_tag }} – {{ ausleihe.asset.asset_name }}</td>
+        <td>{{ ausleihe.asset.asset_tag }}</td>
         <td>{{ ausleihe.asset.category }}</td>
-        <td>{{ ausleihe.person.name }} ({{ ausleihe.person.teilnehmer_id }})</td>
+        <td>{{ ausleihe.person.name }} ({{ ausleihe.person.projekt }})</td>
         <td>{{ ausleihe.timestamp|date:"d.m.Y H:i" }}</td>
     </tr>
     {% empty %}

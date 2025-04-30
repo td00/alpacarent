@@ -1,0 +1,52 @@
+{% extends 'verleih/base.html' %}
+{% block content %}
+<h2>Asset prüfen</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="id_asset_input">Asset Tag / QR-Code</label>
+        <input type="text" id="id_asset_input" name="asset_input" class="form-control">
+        <button type="button" class="btn btn-secondary mt-2" onclick="startAssetScanner()">QR-Code scannen</button>
+        <div id="reader-asset" style="width: 300px; display: none;" class="mt-2 mb-3"></div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Prüfen</button>
+</form>
+
+{% if asset_info %}
+    <div class="alert alert-success mt-4">
+        <strong>Dieses Gerät ist ausgeliehen an:</strong><br>
+        <b><u>{{ asset_info.name }}</u></b><br>
+        <small><b>Projekt:</b> {{ asset_info.projekt }}</small>
+    </div>
+{% elif status == "danger" %}
+    <div class="alert alert-danger mt-4 font-weight-bold">
+        Mit dem Gerät stimmt etwas nicht oder es ist nicht ausgeliehen.<br>
+        Bitte nimm das Gerät mit und gib es bei der Orga ab!
+    </div>
+{% endif %}
+
+<!-- html5-qrcode library -->
+<script src="/static/qrcode.js"></script>
+<script>
+function startAssetScanner() {
+    const reader = new Html5Qrcode("reader-asset");
+    document.getElementById("reader-asset").style.display = "block";
+    reader.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        qrCodeMessage => {
+            const raw = qrCodeMessage.trim();
+            const assetTag = raw.startsWith("https://assets.alpacabunt.de/ht/") ? raw.split("/").pop() : raw;
+            document.getElementById("id_asset_input").value = assetTag;
+            reader.stop().then(() => {
+                document.getElementById("reader-asset").style.display = "none";
+            });
+        },
+        errorMessage => {
+            console.warn("QR-Fehler (Asset):", errorMessage);
+        }
+    );
+}
+</script>
+{% endblock %}

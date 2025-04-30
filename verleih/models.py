@@ -2,11 +2,11 @@ from django.db import models
 from django.utils import timezone
 
 class Person(models.Model):
-    teilnehmer_id = models.CharField(max_length=10, unique=True)
+    teilnehmer_id = models.CharField(max_length=100, unique=True)
     name = models.CharField(max_length=100)
-    bestellnummer = models.CharField(max_length=50)
+    projekt = models.CharField(max_length=100)
     def __str__(self):
-        return f"{self.teilnehmer_id} - {self.name} ({self.bestellnummer})"
+        return f"{self.name} - ({self.projekt})"
     class Meta:
         verbose_name = "Teilnehmer*in"
         verbose_name_plural = "Teilnehmer*innen"
