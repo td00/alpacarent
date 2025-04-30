@@ -4,3 +4,4 @@ db.sqlite3
 verleih/__pycache__
 verleih/migrations
 verleih/management/commands/__pycache__
+.env
