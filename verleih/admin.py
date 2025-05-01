@@ -4,7 +4,7 @@ from .models import Person, Asset, Ausleihe, Rueckgabe
 
 admin.site.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ('teilnehmer_id', 'name', 'bestellnummer')
+    list_display = ('teilnehmer_id', 'name', 'projekt')
     search_fields = ('name', 'teilnehmer_id')
 admin.site.register(Asset)
 class AssetAdmin(admin.ModelAdmin):
