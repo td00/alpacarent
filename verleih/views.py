@@ -48,19 +48,32 @@ def ausleihen(request):
             except Asset.DoesNotExist:
                 messages.error(request, "Dieses Asset existiert nicht.")
                 return redirect('ausleihe')
-            if asset.checked_out_to is not None:
-                messages.error(request, f"Asset {asset.asset_tag} ist bereits an {asset.checked_out_to} ausgeliehen.")
-                return redirect('ausleihe')
-            anzahl_ausleihen = Ausleihe.objects.filter(person=person, rueckgabe__isnull=True).count()
-            if anzahl_ausleihen >= 2:
-                messages.warning(request, f"{person.name} hat bereits {anzahl_ausleihen} Geräte ausgeliehen.")
+
+            if asset.status == "Defect":
+                messages.error(request, f"Asset {asset.asset_tag} ist defekt und kann nicht ausgeliehen werden.")
                 return redirect('ausleihe')
 
-            asset.checked_out_to = person
-            asset.save()
-            messages.success(request, f"Asset {asset_code} erfolgreich ausgeliehen.")
-            Ausleihe.objects.create(person=person, asset=asset, user=request.user.username)
-            return redirect('ausleihe')
+            if asset.status == "Pending":
+                messages.warning(request, f"Asset {asset.asset_tag} muss noch geprüft werden, bevor es ausgeliehen werden kann.")
+                return render(request, 'verleih/ausleihe.html', {
+                    'form': form,
+                    'asset': asset
+                })
+
+            if asset.status == "Ready to Deploy":
+                if asset.checked_out_to is not None:
+                    messages.error(request, f"Asset {asset.asset_tag} ist bereits an {asset.checked_out_to} ausgeliehen.")
+                    return redirect('ausleihe')
+                anzahl_ausleihen = Ausleihe.objects.filter(person=person, rueckgabe__isnull=True).count()
+                if anzahl_ausleihen >= 2:
+                    messages.warning(request, f"{person.name} hat bereits {anzahl_ausleihen} Geräte ausgeliehen.")
+                    return redirect('ausleihe')
+
+                asset.checked_out_to = person
+                asset.save()
+                messages.success(request, f"Asset {asset_code} erfolgreich ausgeliehen.")
+                Ausleihe.objects.create(person=person, asset=asset, user=request.user.username)
+                return redirect('ausleihe')
     else:
         form = AusleiheForm()
     return render(request, 'verleih/ausleihe.html', {'form': form})
@@ -99,7 +112,13 @@ def rueckgabe(request):
                 kommentar=form.cleaned_data['kommentar'],
                 user=request.user.username
             )
-
+            zustand = form.cleaned_data['zustand']
+            if zustand == 'Defekt':
+                asset.status = 'Defect'
+            elif zustand == 'Schlechter':
+                asset.status = 'Pending'
+            else:
+                asset.status = 'Ready to Deploy'
             def clean(self):
                 cleaned_data = super().clean()
                 zustand = cleaned_data.get("zustand")
@@ -117,12 +136,29 @@ def rueckgabe(request):
     else:
         form = RueckgabeForm()
     return render(request, 'verleih/rueckgabe.html', {'form': form})
-
-
 @login_required
 def verfuegbare_assets(request):
-    assets = Asset.objects.filter(checked_out_to__isnull=True).order_by('category')
-    return render(request, 'verleih/verfuegbar.html', {'assets': assets})
+    ready_to_deploy = Asset.objects.filter(status="Ready to Deploy", checked_out_to__isnull=True).order_by('category')
+    pending_checks = Asset.objects.filter(status="Pending").order_by('category')
+    defect_assets = Asset.objects.filter(status="Defect").order_by('category')
+    defect_details = []
+    for asset in defect_assets:
+        last_ausleihe = Ausleihe.objects.filter(asset=asset).last()
+        if last_ausleihe:
+            rueckgabe = Rueckgabe.objects.filter(ausleihe=last_ausleihe).last()
+            defect_details.append({
+                'asset': asset,
+                'last_person': last_ausleihe.person,
+                'user': rueckgabe.user if rueckgabe else 'Unbekannt',
+                'kommentar': rueckgabe.kommentar if rueckgabe else 'Kein Kommentar'
+            })
+
+    return render(request, 'verleih/verfuegbar.html', {
+        'ready_to_deploy': ready_to_deploy,
+        'pending_checks': pending_checks,
+        'defect_details': defect_details
+    })
+
 
 
 @login_required
@@ -151,7 +187,7 @@ def export_csv():
     writer = csv.writer(buffer, delimiter=';')
 
     writer.writerow([
-        "Asset", "Ausgegeben an", "Teilnehmer-ID", "Bestellnummer",
+        "Asset", "Ausgegeben an", "Bestellnummer",
         "Ausgegeben am", "Zurueck am", "Status",
         "Ausgegeben von", "Zurueck von", "Zustand", "Kommentar"
     ])
@@ -174,7 +210,6 @@ def export_csv():
                 ausleihe.asset.asset_tag,
                 person.name,
                 person.teilnehmer_id,
-                person.bestellnummer,
                 ausleihe.timestamp.strftime("%d.%m.%Y %H:%M"),
                 rueckgabezeit,
                 status,
@@ -188,7 +223,6 @@ def export_csv():
                 ausleihe.asset.asset_tag,
                 person.name,
                 person.teilnehmer_id,
-                person.bestellnummer,
                 ausleihe.timestamp.strftime("%d.%m.%Y %H:%M"),
                 "",
                 "MISSING",
@@ -280,8 +314,6 @@ def meingeraet_view(request):
         if form.is_valid():
             teilnehmer_id = form.cleaned_data["teilnehmer_id"]
             asset_input = form.cleaned_data["asset_input"]
-
-            # Aktive Ausleihe zur Person & Asset finden
             ausleihe_qs = Ausleihe.objects.filter(
                 person__teilnehmer_id=teilnehmer_id,
                 asset__asset_tag=asset_input
@@ -296,7 +328,6 @@ def meingeraet_view(request):
                 result = "Nein, das ist nicht dein Leihgerät. Wenn du Fragen hast, wende dich bitte an die Orga."
                 status = "danger"
 
-                # Prüfe, ob dieses Asset überhaupt aktiv verliehen ist
                 andere_ausleihe_qs = Ausleihe.objects.filter(
                     asset__asset_tag=asset_input
                 ).exclude(id__in=Rueckgabe.objects.values("ausleihe"))
@@ -323,10 +354,8 @@ def asset_check_view(request):
     if request.method == "POST":
         raw_input = request.POST.get("asset_input", "").strip()
 
-        # Falls es eine URL ist, nur den Asset-Tag extrahieren
         asset_tag = raw_input.split("/")[-1] if "/" in raw_input else raw_input
 
-        # Suche nach aktiver Ausleihe (ohne zugehörige Rückgabe)
         ausleihe = Ausleihe.objects.filter(asset__asset_tag=asset_tag).exclude(
             rueckgabe__isnull=False
         ).first()
@@ -339,9 +368,23 @@ def asset_check_view(request):
             }
             status = "success"
         else:
-            status = "danger"  # Kein aktiver Ausleiher gefunden
+            status = "danger"
 
     return render(request, "verleih/asset_check.html", {
         "asset_info": asset_info,
         "status": status,
     })
+
+@login_required
+def set_asset_status(request, asset_id, status):
+    asset = get_object_or_404(Asset, id=asset_id)
+
+    if status == 'ready':
+        asset.status = 'Ready to Deploy'
+    elif status == 'defect':
+        asset.status = 'Defect'
+        asset.status_change_user = request.user
+        asset.status_change_date = timezone.now()
+
+    asset.save()
+    return redirect('verfuegbar')
