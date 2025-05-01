@@ -383,8 +383,6 @@ def set_asset_status(request, asset_id, status):
         asset.status = 'Ready to Deploy'
     elif status == 'defect':
         asset.status = 'Defect'
-        asset.status_change_user = request.user
-        asset.status_change_date = timezone.now()
 
     asset.save()
     return redirect('verfuegbar')
