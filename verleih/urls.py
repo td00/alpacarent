@@ -16,5 +16,6 @@ urlpatterns = [
     path('import-snipeit/', views.import_assets_view, name='import_snipeit'),
     path('meingeraet/', views.meingeraet_view, name='meingeraet'),
     path('asset-check/', views.asset_check_view, name='asset_check'),
+    path('accounts/login/', LoginView.as_view(template_name='verleih/login.html'), name='login'),
 
 ]
