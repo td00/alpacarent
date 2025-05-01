@@ -22,6 +22,7 @@ LANGUAGE_CODE = config("LANGUAGE_CODE", default="de-DE")
 CSRF_TRUSTED_ORIGINS = config("CSRT_TRUSTED_ORIGINS", default=['http://localhost:8000'])
 SNIPEIT_URL = config("SNIPEIT_URL")
 SNIPEIT_TOKEN = config("SNIPEIT_TOKEN")
+ASSET_CHECK_TOKEN = config("ASSET_CHECK_TOKEN")
 
 LOGIN_REDIRECT_URL = "/"
 
@@ -55,6 +56,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "verleih.middleware.token_login.TokenAuthMiddleware",
 ]
 
 
