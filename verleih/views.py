@@ -13,6 +13,10 @@ from reportlab.pdfgen import canvas
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
 
+def is_in_menti_group(user):
+    return user.groups.filter(name='Menti').exists() or user.is_superuser
+
+
 
 
 @login_required
@@ -95,7 +99,7 @@ def rueckgabe(request):
                 kommentar=form.cleaned_data['kommentar'],
                 user=request.user.username
             )
-            
+
             def clean(self):
                 cleaned_data = super().clean()
                 zustand = cleaned_data.get("zustand")
@@ -311,6 +315,7 @@ def meingeraet_view(request):
     })
 
 @login_required
+@user_passes_test(is_in_menti_group)
 def asset_check_view(request):
     asset_info = None
     status = None
