@@ -1,3 +1,4 @@
 django
 reportlab
 python-decouple
+requests
