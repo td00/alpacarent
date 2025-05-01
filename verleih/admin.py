@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group
 from .models import Person, Asset, Ausleihe, Rueckgabe
 
 admin.site.register(Person)
@@ -17,3 +18,5 @@ admin.site.register(Rueckgabe)
 class RueckgabeAdmin(admin.ModelAdmin):
     list_display = ('ausleihe', 'zustand', 'kommentar', 'timestamp', 'user')
     search_fields = ('ausleihe__person__name', 'ausleihe__asset__asset_tag')
+
+Group.objects.get_or_create(name="Menti")
