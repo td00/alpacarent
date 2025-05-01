@@ -17,5 +17,6 @@ urlpatterns = [
     path('meingeraet/', views.meingeraet_view, name='meingeraet'),
     path('asset-check/', views.asset_check_view, name='asset_check'),
     path('accounts/login/', LoginView.as_view(template_name='verleih/login.html'), name='login'),
+    path('set-status/<int:asset_id>/<str:status>/', views.set_asset_status, name='set_asset_status'),
 
 ]

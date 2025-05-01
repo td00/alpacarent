@@ -2,11 +2,47 @@
 {% block content %}
 <h2>Verfügbare Assets</h2>
 
+<h3>Ready to Deploy</h3>
 <ul>
-  {% for asset in assets %}
+  {% for asset in ready_to_deploy %}
     <li>{{ asset.asset_tag }} – {{ asset.asset_name }} (Kategorie: {{ asset.category }})</li>
   {% empty %}
     <li>Keine verfügbaren Assets gefunden.</li>
   {% endfor %}
 </ul>
+
+<h3>Pending Checks</h3>
+<ul>
+  {% for asset in pending_checks %}
+    <li>
+      {{ asset.asset_tag }} – {{ asset.asset_name }} (Kommentar: {{ asset.kommentar }})
+      <a href="{% url 'admin:verleih_asset_change' asset.id %}" class="btn btn-warning" target="_blank"><i class="bi bi-tools"></i></a>
+
+      <a href="{% url 'set_asset_status' asset.id 'ready' %}" class="btn btn-success" title="Setze Status auf 'Ready to Deploy'">
+        <i class="bi bi-check"></i>
+      </a>
+
+      <a href="{% url 'set_asset_status' asset.id 'defect' %}" class="btn btn-danger" title="Setze Status auf 'Defect'">
+        <i class="bi bi-x"></i>
+      </a>
+    </li>
+  {% empty %}
+    <li>Keine Assets mit ausstehenden Prüfungen gefunden.</li>
+  {% endfor %}
+</ul>
+
+<h3>Defekt</h3>
+<ul>
+  {% for detail in defect_details %}
+    <li>
+      {{ detail.asset.asset_tag }} – {{ detail.asset.asset_name }}
+      (Zuletzt ausgeliehen an: {{ detail.last_person.name }}),
+      Rückgabe durch: {{ detail.user }} (Kommentar: {{ detail.kommentar }})
+      <a href="{% url 'admin:verleih_asset_change' detail.asset.id %}" class="btn btn-warning" target="_blank"><i class="bi bi-tools"></i></a>
+    </li>
+  {% empty %}
+    <li>Keine defekten Assets gefunden.</li>
+  {% endfor %}
+</ul>
+
 {% endblock %}
