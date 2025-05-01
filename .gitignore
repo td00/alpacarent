@@ -6,3 +6,4 @@ verleih/migrations
 verleih/management/commands/__pycache__
 .env
 .trunk
+verleih/templatetags/__pycache__
