@@ -8,6 +8,16 @@ class PersonForm(forms.ModelForm):
     class Meta:
         model = Person
         fields = ['teilnehmer_id', 'name', 'projekt']
+    def clean_teilnehmer_id(self):
+        teilnehmer_id = self.cleaned_data['teilnehmer_id'].strip()
+
+        try:
+            existing = Person.objects.get(teilnehmer_id=teilnehmer_id)
+            raise forms.ValidationError(
+                f"ID bereits vergeben an Teilnehmer*in {existing.name} vom Projekt {existing.projekt}"
+            )
+        except Person.DoesNotExist:
+            return teilnehmer_id
 
 class AusleiheForm(forms.Form):
     teilnehmer_id = forms.CharField(label="Teilnehmer*innen Code", help_text="Bitte den Teilnehmer*innen Code scannen oder eingeben. Beispiel: TEILI-001")
@@ -18,7 +28,7 @@ class RueckgabeForm(forms.Form):
     asset_input = forms.CharField(label="Asset Tag", help_text="Bitte den Asset Tag scannen oder eingeben. Beispiel: AINV-00001")
     zustand = forms.ChoiceField(label="Asset Zustand", help_text="Bitte wähle den Asset Zustand aus", choices=[('Gleich', 'Gleich'), ('Schlechter', 'Schlechter'), ('Defekt', 'Defekt')])
     kommentar = forms.CharField(label="Kommentar", help_text="Wenn du irgendetwas zum Zustand oder Asset kommentieren willst kannst du das hier tun.", widget=forms.Textarea, required=False)
-    
+
 class MeinGeraetForm(forms.Form):
     teilnehmer_id = forms.CharField(label="Teilnehmer*innen Code", help_text="Scanne deinen Code", required=True)
     asset_input = forms.CharField(label="Asset Tag", help_text="Scanne das Gerät", required=True)
