@@ -14,7 +14,7 @@ class PersonForm(forms.ModelForm):
         try:
             existing = Person.objects.get(teilnehmer_id=teilnehmer_id)
             raise forms.ValidationError(
-                f"ID bereits vergeben an Teilnehmer*in {existing.name} vom Projekt {existing.projekt}"
+                f"ID bereits vergeben an Teilnehmer*in {existing.name} vom Projekt {existing.projekt}. Wenn das ein Fehler ist kontaktiere bitte einen Admin"
             )
         except Person.DoesNotExist:
             return teilnehmer_id
