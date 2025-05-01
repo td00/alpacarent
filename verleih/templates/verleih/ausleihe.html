@@ -22,7 +22,6 @@
     <button type="submit" class="btn btn-success mt-3">Ausleihen</button>
 </form>
 
-<!-- html5-qrcode library -->
 <script src="/static/qrcode.js"></script>
 <script>
 function startPersonScanner() {
@@ -63,4 +62,16 @@ function startAssetScanner() {
     );
 }
 </script>
+
+{% if asset %}
+  {% if asset.status == "Pending" %}
+    <div class="alert alert-warning mt-3">
+      <p>Das Gerät {{ asset.asset_tag }} muss geprüft werden, bevor es ausgeliehen werden kann.</p>
+    </div>
+  {% elif asset.status == "Defect" %}
+    <div class="alert alert-danger mt-3">
+      <p>Das Gerät {{ asset.asset_tag }} ist defekt und kann nicht ausgeliehen werden.</p>
+    </div>
+  {% endif %}
+{% endif %}
 {% endblock %}
