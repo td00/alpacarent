@@ -7,3 +7,4 @@ verleih/management/commands/__pycache__
 .env
 .trunk
 verleih/templatetags/__pycache__
+verleih/middleware/__pycache__
