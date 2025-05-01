@@ -11,7 +11,7 @@
         {% if form.teilnehmer_id.errors %}
             <div class="text-danger">{{ form.teilnehmer_id.errors.0 }}</div>
         {% endif %}
-        <button type="button" class="btn btn-secondary mt-2" onclick="startPersonScanner()">QR-Code scannen</button>
+        <button type="button" class="btn btn-secondary mt-2" onclick="startPersonScanner()"><i class="bi bi-camera"></i></button>
         <div id="reader-person" style="width: 300px; display: none;" class="mt-2 mb-3"></div>
     </div>
 

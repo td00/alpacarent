@@ -4,18 +4,18 @@
 
 <form method="post">
     {% csrf_token %}
-    
+
     <div class="form-group">
         <label for="id_teilnehmer_id">Teilnehmer*innen Code</label>
         {{ form.teilnehmer_id }}
-        <button type="button" class="btn btn-secondary mt-2" onclick="startPersonScanner()">QR-Code scannen</button>
+        <button type="button" class="btn btn-secondary mt-2" onclick="startPersonScanner()"><i class="bi bi-camera"></i></button>
         <div id="reader-person" style="width: 300px; display: none;" class="mt-2 mb-3"></div>
     </div>
 
     <div class="form-group">
         <label for="id_asset_input">Asset Tag</label>
         {{ form.asset_input }}
-        <button type="button" class="btn btn-secondary mt-2" onclick="startAssetScanner()">QR-Code scannen</button>
+        <button type="button" class="btn btn-secondary mt-2" onclick="startAssetScanner()"><i class="bi bi-camera"></i></button>
         <div id="reader-asset" style="width: 300px; display: none;" class="mt-2 mb-3"></div>
     </div>
 
